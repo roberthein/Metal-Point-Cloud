@@ -67,7 +67,7 @@ class GameViewController: UIViewController {
         view.addGestureRecognizer(tapGestureRecognizer)
         
         let label = UILabel(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 40))
-        label.font = UIFont.systemFont(ofSize: 15, weight: -0.5)
+        label.font = UIFont.systemFont(ofSize: 15, weight: UIFont.Weight(rawValue: -0.5))
         label.text = "drag to rotate\ntap to play/pause"
         label.textColor = .white
         label.textAlignment = .center
@@ -81,12 +81,12 @@ class GameViewController: UIViewController {
         }
     }
     
-    func panGestureRecognized(_ panGestureRecognizer: UIPanGestureRecognizer) {
+    @objc func panGestureRecognized(_ panGestureRecognizer: UIPanGestureRecognizer) {
         let velocity = panGestureRecognizer.velocity(in: panGestureRecognizer.view)
         angularVelocity = CGPoint(x: velocity.x * kVelocityScale, y: velocity.y * kVelocityScale);
     }
     
-    func tapGestureRecognized(_ tapGestureRecognizer: UITapGestureRecognizer) {
+    @objc func tapGestureRecognized(_ tapGestureRecognizer: UITapGestureRecognizer) {
         if DELTA == 0.0 {
             DELTA = Float(0.0003)
         } else {
@@ -138,7 +138,7 @@ class GameViewController: UIViewController {
         guard let device = metalKitView?.device else { return }
         
         queue = device.makeCommandQueue()
-        library = device.newDefaultLibrary()
+        library = device.makeDefaultLibrary()
         
         initComputePipelineState(device)
         initRenderPipelineState(device)
@@ -233,13 +233,13 @@ extension GameViewController: MTKViewDelegate {
         let numgroups = MTLSizeMake(numberOfObjects / 512, 1, 1)
         
         let computeEncoder = buffer!.makeComputeCommandEncoder()
-        computeEncoder.setComputePipelineState(computePipelineState)
-        computeEncoder.setBuffer(positionsIn, offset: 0, at: 0)
-        computeEncoder.setBuffer(positionsOut, offset: 0, at: 1)
-        computeEncoder.setBuffer(velocities, offset: 0, at: 2)
-        computeEncoder.setBuffer(computeParams, offset: 0, at: 3)
-        computeEncoder.dispatchThreadgroups(numgroups, threadsPerThreadgroup: groupsize)
-        computeEncoder.endEncoding()
+        computeEncoder?.setComputePipelineState(computePipelineState)
+        computeEncoder?.setBuffer(positionsIn, offset: 0, index: 0)
+        computeEncoder?.setBuffer(positionsOut, offset: 0, index: 1)
+        computeEncoder?.setBuffer(velocities, offset: 0, index: 2)
+        computeEncoder?.setBuffer(computeParams, offset: 0, index: 3)
+        computeEncoder?.dispatchThreadgroups(numgroups, threadsPerThreadgroup: groupsize)
+        computeEncoder?.endEncoding()
         
         // Vertex and fragment shaders
         let renderPassDescriptor = view.currentRenderPassDescriptor
@@ -247,11 +247,11 @@ extension GameViewController: MTKViewDelegate {
         renderPassDescriptor!.colorAttachments[0].clearColor = MTLClearColorMake(0.15, 0.15, 0.3, 1.0)
         
         let renderEncoder  = buffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor!)
-        renderEncoder.setRenderPipelineState(renderPipelineState)
-        renderEncoder.setVertexBuffer(positionsOut, offset: 0, at: 0)
-        renderEncoder.setVertexBuffer(renderParams, offset: 0, at: 1)
-        renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: numberOfObjects)
-        renderEncoder.endEncoding()
+        renderEncoder?.setRenderPipelineState(renderPipelineState)
+        renderEncoder?.setVertexBuffer(positionsOut, offset: 0, index: 0)
+        renderEncoder?.setVertexBuffer(renderParams, offset: 0, index: 1)
+        renderEncoder?.drawPrimitives(type: .point, vertexStart: 0, vertexCount: numberOfObjects)
+        renderEncoder?.endEncoding()
         
         buffer!.present(view.currentDrawable!)
         buffer!.commit()
